@@ -1,3 +1,11 @@
+'''Parses the inkml files of the dataset into workable hierarchical objects'''
+import sys
+
+def load(filename):
+    with open(filename, 'r') as f:
+        return f.read()
+
+
 def strip(enclosed_string: str):
     '''Returns the string with brackets or quotation marks removed from both ends'''
     return enclosed_string.strip("</>'\"")
@@ -119,32 +127,49 @@ class TagSpace:
 
                     self.tagspaces.append(TagSpace(inkml[open_tag_start: close_tag_end + 1]))
                     head = close_tag_end + 1
+    
+    def data_repr(self):
+        threshold = 30
+        if self.data is None:
+            return ''
+        else:
+            if len(self.data) > threshold:
+                return self.data[:threshold] + ' [...]'
+            else:
+                return self.data
 
-    def __repr__(self):
+    def __str__(self):
         representation = [self.open_tag]
-
         if self.data is not None:
-            data_repr = self.data
-            if len(data_repr) > 30:
-                data_repr = data_repr[:30] + ' [...]'
-            representation[0] += ': ' + data_repr
+            representation[0] += ': ' + self.data_repr()
 
         for tagspace in self.tagspaces:
             tagspace_repr = '    ' + tagspace.open_tag
 
             if tagspace.data is not None:
-                data_repr = tagspace.data
-                if len(data_repr) > 30:
-                    data_repr = data_repr[:30] + ' [...]'
-                tagspace_repr += ': ' + data_repr
+                tagspace_repr += ': ' + tagspace.data_repr()
 
             representation.append(tagspace_repr)
         return '\n'.join(representation)
 
+    def __repr__(self):
+        representation = [self.open_tag]
+        if self.data is not None:
+            representation[0] += ': ' + self.data_repr()
+
+        for tagspace in self.tagspaces:
+            for line in repr(tagspace).split('\n'):
+                representation.append(' ' * 4 + line)
+
+        representation.append(self.close_tag)
+        return '\n'.join(representation)
 
 if __name__ == '__main__':
-    from sys import stdin
-    inkml = stdin.read()
-    ts = TagSpace(inkml)
-    print(ts)
+    if len(sys.argv) > 1:
+        filename = sys.argv[1]
+        inkml = load(filename)
+        ts = TagSpace(inkml)
+        print(ts)
+        print()
+        print(repr(ts))
 
