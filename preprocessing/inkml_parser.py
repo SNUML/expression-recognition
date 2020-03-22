@@ -117,20 +117,25 @@ def whitespace_removal(inkml: str):
     return ''.join(removed_inkml)
 
 
-class TagSpace:
+
+class TagTree:
     """Parses an inkml file to create a hierarchical tree-like structure of tags and data."""
     def __init__(self, inkml: str):
+        if inkml.startswith('<?'):
+            raise NotImplementedError('XML prolog handing has not been implemented.')
+
         self.inkml = inkml
-        self.tagspaces = []
+        self.subtrees = []
         self.data = None
 
         open_tag_start, open_tag_end = find_open_tag(inkml, 0)
         assert open_tag_start >= 0
 
         self.open_tag = inkml[open_tag_start: open_tag_end + 1]
+        self.tag_data = tag_data(self.open_tag)
 
         if self.open_tag[-2] == '/':  # the tag closes itself
-            self.close_tag = self.open_tag
+            self.close_tag = None
 
         else:  # There is a separate close tag
             self.close_tag = open_tag_to_close_tag(self.open_tag)
@@ -158,7 +163,7 @@ class TagSpace:
                         close_tag_start, close_tag_end = find_close_tag(open_tag, inkml, head)
                         assert close_tag_start >= 0
 
-                    self.tagspaces.append(TagSpace(inkml[open_tag_start: close_tag_end + 1]))
+                    self.subtrees.append(TagTree(inkml[open_tag_start: close_tag_end + 1]))
                     head = close_tag_end + 1
 
     def data_repr(self):
@@ -176,7 +181,7 @@ class TagSpace:
         if self.data is not None:
             representation[0] += ': ' + self.data_repr()
 
-        for tagspace in self.tagspaces:
+        for tagspace in self.subtrees:
             tagspace_repr = '    ' + tagspace.open_tag
 
             if tagspace.data is not None:
@@ -190,17 +195,19 @@ class TagSpace:
         if self.data is not None:
             representation[0] += ': ' + self.data_repr()
 
-        for tagspace in self.tagspaces:
+        for tagspace in self.subtrees:
             for line in repr(tagspace).split('\n'):
                 representation.append(' ' * 4 + line)
 
-        representation.append(self.close_tag)
+        if self.close_tag is not None:
+            representation.append(self.close_tag)
         return '\n'.join(representation)
 
 
 if __name__ == '__main__':
+    print("This module is likely to become redundant as xml.etree.ElementTree is sufficient.")
     if len(sys.argv) > 1:
         inkml_filename = sys.argv[1]
         inkml_txt = load(inkml_filename)
-        ts = TagSpace(inkml_txt)
-        print(ts)
+        ts = TagTree(inkml_txt)
+        print(repr(ts))
