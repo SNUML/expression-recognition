@@ -1,9 +1,12 @@
 '''Parses the inkml files of the dataset into workable hierarchical objects'''
 import sys
 
-def load(filename):
+def load(filename, raw=False):
     with open(filename, 'r') as f:
-        return f.read()
+        if raw:
+            return f.read()
+        else:
+            return whitespace_removal(f.read())
 
 
 def strip(enclosed_string: str):
@@ -77,14 +80,30 @@ def open_tag_to_close_tag(open_tag):
     return '</' + tag_type(open_tag) + '>'
 
 
+def whitespace_removal(inkml: str):
+    '''Removes whitespaces between tags.
+    This should include all indentation.
+    '''
+    whitespaces = ['\r', '\n', '\t', ' ']
+    removed_inkml = []
+    closed = False
+    for i in range(len(inkml)):
+        char = inkml[i]
+        if closed:
+            if char not in whitespaces:
+                removed_inkml.append(char)
+                closed = False
+        else:
+            removed_inkml.append(char)
+            if char == '>':
+                closed = True
+
+    return ''.join(removed_inkml)
+
+
 class TagSpace:
     '''Parses an inkml file to create a hierarchical tree-like structure of tags and data'''
     def __init__(self, inkml: str):
-        inkml = inkml.replace('\r', '')
-        inkml = inkml.replace('\n', '')
-        inkml = inkml.replace('\t', '')
-        inkml = inkml.replace(' ' * 4, '')
-
         self.inkml = inkml
         self.tagspaces = []
         self.data = None
