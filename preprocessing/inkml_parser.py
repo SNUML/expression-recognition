@@ -15,9 +15,22 @@ def strip(enclosed_string: str):
     return enclosed_string.strip("</>'\"")
 
 
+def tag_data(tag) -> dict:
+    """Returns the data contained in the tag in dictionary form."""
+    data = {}
+    attributes = strip(tag).split()
+    data['tag type'] = attributes[0]
+    for i in range(1, len(attributes)):
+        field_name, field_val = attributes[i].split('=')
+        field_val = strip(field_val)
+        data[field_name] = field_val
+
+    return data
+
+
 def tag_type(tag):
     """Returns the type of the tag"""
-    return strip(tag).split()[0]
+    return tag_data(tag)['tag type']
 
 
 def find_open_tag(inkml: str, start_idx: int) -> tuple:
@@ -84,13 +97,16 @@ def whitespace_removal(inkml: str):
     """Removes whitespaces between tags.
     This should include all indentation.
     """
-    whitespaces = ['\r', '\n', '\t', ' ']
+    whitespaces = ['\r', '\n', '\t']
+    for whitespace in whitespaces:
+        inkml = inkml.replace(whitespace, '')
+
     removed_inkml = []
     closed = False
     for i in range(len(inkml)):
         char = inkml[i]
         if closed:
-            if char not in whitespaces:
+            if char != ' ':
                 removed_inkml.append(char)
                 closed = False
         else:
