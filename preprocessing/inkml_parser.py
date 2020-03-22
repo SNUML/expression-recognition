@@ -1,5 +1,6 @@
-'''Parses the inkml files of the dataset into workable hierarchical objects'''
+"""Parses the inkml files of the dataset into workable hierarchical objects"""
 import sys
+
 
 def load(filename, raw=False):
     with open(filename, 'r') as f:
@@ -10,19 +11,19 @@ def load(filename, raw=False):
 
 
 def strip(enclosed_string: str):
-    '''Returns the string with brackets or quotation marks removed from both ends'''
+    """Returns the string with brackets or quotation marks removed from both ends"""
     return enclosed_string.strip("</>'\"")
 
 
 def tag_type(tag):
-    '''Returns the type of the tag'''
+    """Returns the type of the tag"""
     return strip(tag).split()[0]
 
 
 def find_open_tag(inkml: str, start_idx: int) -> tuple:
-    '''Finds the next opening tag and returns the indexes of the brackets.
+    """Finds the next opening tag and returns the indexes of the brackets.
     Returns tuple of negative integers upon exceptions.
-    '''
+    """
     if len(inkml) <= start_idx:
         return -1, -1
     if inkml[start_idx] != '<':
@@ -41,7 +42,7 @@ def find_open_tag(inkml: str, start_idx: int) -> tuple:
 
 
 def find_close_tag(open_tag, inkml, start_idx) -> tuple:
-    '''Searches for and returns the indexes of the corresponding close_tag's brackets for the specified open_tag'''
+    """Searches for and returns the indexes of the corresponding close_tag's brackets for the specified open_tag"""
     if len(inkml) <= start_idx:
         return -1, -1
 
@@ -49,7 +50,6 @@ def find_close_tag(open_tag, inkml, start_idx) -> tuple:
     to_close = 1
     parsing_tag = False
     tag_open = 0
-    tag_close = 0
     head = start_idx
     while head < len(inkml):
         if not parsing_tag:
@@ -73,17 +73,17 @@ def find_close_tag(open_tag, inkml, start_idx) -> tuple:
                         to_close += 1
         head += 1
     return -2, -2
-        
+
 
 def open_tag_to_close_tag(open_tag):
-    '''Returns the closing tag for a opening tag'''
+    """Returns the closing tag for a opening tag"""
     return '</' + tag_type(open_tag) + '>'
 
 
 def whitespace_removal(inkml: str):
-    '''Removes whitespaces between tags.
+    """Removes whitespaces between tags.
     This should include all indentation.
-    '''
+    """
     whitespaces = ['\r', '\n', '\t', ' ']
     removed_inkml = []
     closed = False
@@ -102,7 +102,7 @@ def whitespace_removal(inkml: str):
 
 
 class TagSpace:
-    '''Parses an inkml file to create a hierarchical tree-like structure of tags and data'''
+    """Parses an inkml file to create a hierarchical tree-like structure of tags and data."""
     def __init__(self, inkml: str):
         self.inkml = inkml
         self.tagspaces = []
@@ -136,17 +136,15 @@ class TagSpace:
                     head = open_tag_end + 1
 
                     if open_tag[-2] == '/':  # the tag closes itself
-                        close_tag = open_tag
                         close_tag_start, close_tag_end = open_tag_start, open_tag_end
 
                     else:  # There is a separate close tag
                         close_tag_start, close_tag_end = find_close_tag(open_tag, inkml, head)
-                        close_tag = inkml[close_tag_start: close_tag_end + 1]
                         assert close_tag_start >= 0
 
                     self.tagspaces.append(TagSpace(inkml[open_tag_start: close_tag_end + 1]))
                     head = close_tag_end + 1
-    
+
     def data_repr(self):
         threshold = 30
         if self.data is None:
@@ -183,12 +181,10 @@ class TagSpace:
         representation.append(self.close_tag)
         return '\n'.join(representation)
 
+
 if __name__ == '__main__':
     if len(sys.argv) > 1:
-        filename = sys.argv[1]
-        inkml = load(filename)
-        ts = TagSpace(inkml)
+        inkml_filename = sys.argv[1]
+        inkml_txt = load(inkml_filename)
+        ts = TagSpace(inkml_txt)
         print(ts)
-        print()
-        print(repr(ts))
-
