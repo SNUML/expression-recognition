@@ -2,6 +2,7 @@ from PIL import Image
 import numpy as np
 from expression_loader import Expression
 from copy import deepcopy
+from os import listdir, getcwd
 
 COLOR_MAX = 255
 FRAME_SIZE = 40
@@ -50,19 +51,14 @@ def find_center(traces):
 
 def find_limiting_point(measured_from, points):
     """Finds the point which will lie on box's border."""
-    best_dst = 0
-    best_point = points[0]
+    radius = 0
+    limiting_point = points[0]
     for point in points:
         dst = max([abs(x) for x in point - measured_from])
-        if dst > best_dst:
-            best_dst = dst
-            best_point = point
-    return best_point
-
-
-def radius(symbol, center):
-    limiting_point = find_limiting_point(center, symbol.points())
-    return distance(center, limiting_point)
+        if dst > radius:
+            radius = dst
+            limiting_point = point
+    return limiting_point, radius
 
 
 def rescale(point, center, factor):
@@ -72,8 +68,9 @@ def rescale(point, center, factor):
 def resize(symbol):
     new_symbol = deepcopy(symbol)
     center = find_center(symbol.traces)
-    factor = FRAME_SIZE / 2 / radius(symbol, center)
-    factor *= 0.99  # Just in case it 'overflows' the box borders
+    limiting_point, radius = find_limiting_point(center, symbol.points())
+    factor = FRAME_SIZE / 2 / radius
+    factor *= 0.8  # Just in case it 'overflows' the box borders
     for trace in new_symbol.traces:
         for i in range(len(trace)):
             # rescaling
@@ -96,21 +93,45 @@ def draw(symbol):
             if int(start_x) == int(end_x):
                 x = int(start_x)
                 for y in range(int(start_y), int(end_y) + 1):
-                    grid[x][y] = 1
+                    if x in range(FRAME_SIZE) and y in range(FRAME_SIZE):
+                        grid[x][y] = 1
             else:
                 gradient = (end_y - start_y) / (end_x - start_x)
                 for x in range(int(start_x), int(end_x) + 1):
                     y = int((x + 0.5 - start_x) * gradient + start_y)
-                    grid[x][y] = 1
+                    if x in range(FRAME_SIZE) and y in range(FRAME_SIZE):
+                        grid[x][y] = 1
+
+            # Start point always has smaller y
+            start_point, end_point = sorted([trace[i - 1], trace[i]], key=lambda p: p[0])
+            start_y, start_x = start_point
+            end_y, end_x = end_point
+            if int(start_y) == int(end_y):
+                y = int(start_y)
+                for x in range(int(start_x), int(end_x) + 1):
+                    if x in range(FRAME_SIZE) and y in range(FRAME_SIZE):
+                        grid[x][y] = 1
+            else:
+                gradient = (end_x - start_x) / (end_y - start_y)
+                for y in range(int(start_y), int(end_y) + 1):
+                    x = int((y + 0.5 - start_y) * gradient + start_x)
+                    if x in range(FRAME_SIZE) and y in range(FRAME_SIZE):
+                        grid[x][y] = 1
     return grid
 
 
 if __name__ == '__main__':
-    with open('formulaire001-equation001.inkml', 'r') as f:
-        inkml_str = f.read()
-    test = Expression(inkml_str)
-    symbols = test.symbols()
-    symbol = symbols[1]
-    array = draw(symbol)
-    img = to_image(array)
-    img.save('test.png')
+    numbering = 1
+    for filename in listdir(getcwd()):
+        if filename.endswith('.inkml'):
+            with open(filename, 'r') as f:
+                inkml_str = f.read()
+            expression = Expression(inkml_str)
+            symbols = expression.symbols()
+            for symbol in symbols:
+                print(numbering, symbol.truth)
+                array = draw(symbol)
+                img = to_image(array)
+                truth_string = symbol.truth.replace('\\', '')
+                img.save(str(numbering) + '   ' + truth_string + '.png')
+                numbering += 1
