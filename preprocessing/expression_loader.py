@@ -1,5 +1,6 @@
 from xml.etree import ElementTree
 from copy import deepcopy
+import numpy as np
 
 
 def strip_namespace(tag):
@@ -12,6 +13,9 @@ class Symbol:
         self.truth = truth
         self.traces = deepcopy(traces)  # list of lists
         self.MathML = MathML
+
+    def points(self):
+        return np.concatenate(self.traces)
 
 
 class Expression:
@@ -48,7 +52,7 @@ class Expression:
                 self.MathML = ElementTree.tostring(child)
             elif child.tag.endswith('trace'):
                 trace_id = child.attrib['id']
-                trace = [pair.split() for pair in child.text.split(',')]
+                trace = np.asarray([pair.split() for pair in child.text.split(',')], dtype=np.float32)
                 self.traces[trace_id] = trace
             elif child.tag.endswith('traceGroup'):
                 self.__initialize_trace_groups(child)
