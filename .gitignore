@@ -149,3 +149,5 @@ static
 data/resources/*
 data/train/*
 .DS_Store
+!data/resources/.gitkeep
+!data/train/.gitkeep
