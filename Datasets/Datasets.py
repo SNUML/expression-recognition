@@ -8,6 +8,8 @@ class HandWrittenDataset(Dataset):
         img_files = []
         img_label = []
         for filename in os.listdir(self.root):
+            if not filename.endswith('png'):
+                continue
             print(filename)
             img = Image.open(self.root + filename)
             if img is not None:
