@@ -122,9 +122,9 @@ def draw(symbol):
 
 if __name__ == '__main__':
     numbering = 1
-    for filename in listdir(getcwd()):
+    for filename in listdir('../data/resources/'):
         if filename.endswith('.inkml'):
-            with open(filename, 'r') as f:
+            with open('../data/resources/'+filename, 'r') as f:
                 inkml_str = f.read()
             expression = Expression(inkml_str)
             symbols = expression.symbols()
@@ -133,5 +133,5 @@ if __name__ == '__main__':
                 array = draw(symbol)
                 img = to_image(array)
                 truth_string = symbol.truth.replace('\\', '')
-                img.save(str(numbering) + '   ' + truth_string + '.png')
+                img.save('../data/train/'+str(numbering) + '   ' + truth_string + '.png')
                 numbering += 1

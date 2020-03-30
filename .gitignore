@@ -144,3 +144,8 @@ static
 
 # Added by SyphonArch
 .idea
+
+# Added by Reynie1514
+data/resources/*
+data/train/*
+.DS_Store
