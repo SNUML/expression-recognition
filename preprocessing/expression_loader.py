@@ -57,16 +57,16 @@ class Expression:
             elif child.tag.endswith('traceGroup'):
                 self.__initialize_trace_groups(child)
 
-        assert self.UI is not None
-        assert self.age is not None
-        assert self.copyright is not None
-        assert self.gender is not None
-        assert self.hand is not None
-        assert self.writer is not None
-        assert self.truth is not None
-        assert self.MathML is not None
-        assert self.root_trace_group_id is not None
-        assert self.root_trace_group_annotation is not None
+        #assert self.UI is not None
+        #assert self.age is not None
+        #assert self.copyright is not None
+        #assert self.gender is not None
+        #assert self.hand is not None
+        #assert self.writer is not None
+        #assert self.truth is not None
+        #assert self.MathML is not None
+        #assert self.root_trace_group_id is not None
+        #assert self.root_trace_group_annotation is not None
 
     def __initialize_trace_groups(self, root_trace_group):
         # The root traceGroup

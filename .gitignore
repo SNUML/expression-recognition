@@ -148,6 +148,10 @@ static
 # Added by Reynie1514
 data/resources/*
 data/train/*
+data/resources2/*
+data/test/*
 .DS_Store
 !data/resources/.gitkeep
 !data/train/.gitkeep
+!data/resources2/.gitkeep
+!data/test/.gitkeep
