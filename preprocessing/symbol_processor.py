@@ -138,11 +138,14 @@ def draw(symbol):
     return grid
 
 
+resource_path = '../data/resources/'
+image_save_path = '../data/train/'
+
 if __name__ == '__main__':
     numbering = 1
-    for filename in listdir('../data/resources/'):
+    for filename in listdir(resource_path):
         if filename.endswith('.inkml'):
-            with open('../data/resources/'+filename, 'r') as f:
+            with open(resource_path + filename, 'r') as f:
                 inkml_str = f.read()
             expression = Expression(inkml_str)
             symbols = expression.symbols()
@@ -150,6 +153,7 @@ if __name__ == '__main__':
                 print(numbering, symbol.truth)
                 array = draw(symbol)
                 img = to_image(array)
-                truth_string = symbol.truth.replace('\\', '')
-                img.save('../data/train/'+str(numbering) + '   ' + truth_string + '.png')
+                truth_string = symbol.truth
+                #truth_string = symbol.truth.replace('\\', '')
+                img.save(image_save_path + str(numbering) + '   ' + truth_string + '.png')
                 numbering += 1
