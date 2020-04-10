@@ -1,8 +1,10 @@
+"""Functions for loading and processing inkml trace files into normalized png image files."""
+
 from PIL import Image
 import numpy as np
 from expression_loader import Expression
 from copy import deepcopy
-from os import listdir, getcwd
+from os import listdir
 
 COLOR_MAX = 255
 FRAME_SIZE = 40
@@ -154,6 +156,5 @@ if __name__ == '__main__':
                 array = draw(symbol)
                 img = to_image(array)
                 truth_string = symbol.truth
-                #truth_string = symbol.truth.replace('\\', '')
                 img.save(image_save_path + str(numbering) + '   ' + truth_string + '.png')
                 numbering += 1
