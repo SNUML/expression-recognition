@@ -14,6 +14,7 @@ assert FRAME_SIZE <= IMAGE_SIZE
 
 
 def to_image(binary_list, invert=True):
+    """Receives image in 2d binary list form and returns Image."""
     assert all([all(x in (0, 1) for x in line) for line in binary_list])
     binary_array = np.asarray(binary_list, dtype='uint8')
     borderless_png_array = binary_array * COLOR_MAX
@@ -32,10 +33,12 @@ def to_image(binary_list, invert=True):
 
 
 def distance(a, b):
+    """Returns euclidean distance between two points."""
     return np.linalg.norm(a - b)
 
 
 def find_center(traces):
+    """Receives list of traces and returns center of mass."""
     point_sum = np.asarray([0, 0], dtype=np.float32)
     weight_sum = 0
     for trace in traces:
@@ -62,10 +65,12 @@ def find_limiting_point(measured_from, points):
 
 
 def rescale(point, center, factor):
+    """Shifts point away from center by multiplying distance by factor."""
     return point + (point - center) * (factor - 1)
 
 
 def resize(symbol):
+    """Resizes symbol to FRAME_SIZE."""
     new_symbol = deepcopy(symbol)
     center = find_center(symbol.traces)
     limiting_point, radius = find_limiting_point(center, symbol.points())
@@ -81,42 +86,55 @@ def resize(symbol):
     return new_symbol
 
 
+def rasterized_line(start_point, end_point, axis):
+    """Returns array of coordinates to represent line segment speified by arguments.
+
+    The axis parameter determines by which axis to rasterize the line.
+    The axis parameter should be 0 for x or 1 for y."""
+    assert axis in (0, 1)
+    axis_inv = (axis + 1) % 2
+
+    # makes sure that start_point has smaller rel_x value.
+    start_point, end_point = sorted([start_point, end_point], key=lambda p: p[axis])
+
+    # sets relative x and y depending on the axis argument
+    start_rel_x, start_rel_y = start_point[axis], start_point[axis_inv]
+    end_rel_x, end_rel_y = end_point[axis], end_point[axis_inv]
+
+    coordinates = set()
+    if int(start_rel_x) == int(end_rel_x):
+        rel_x = int(start_rel_x)
+        for rel_y in range(int(start_rel_y), int(end_rel_y) + 1):
+            if rel_x in range(FRAME_SIZE) and rel_y in range(FRAME_SIZE):
+                rel_coordinate = [rel_x, rel_y]
+                x, y = rel_coordinate[axis], rel_coordinate[axis_inv]
+                coordinates.add((x, y))
+    else:
+        gradient = (end_rel_y - start_rel_y) / (end_rel_x - start_rel_x)
+        for rel_x in range(int(start_rel_x), int(end_rel_x) + 1):
+            rel_y = int((rel_x + 0.5 - start_rel_x) * gradient + start_rel_y)
+            if rel_x in range(FRAME_SIZE) and rel_y in range(FRAME_SIZE):
+                rel_coordinate = [rel_x, rel_y]
+                x, y = rel_coordinate[axis], rel_coordinate[axis_inv]
+                coordinates.add((x, y))
+
+    return coordinates
+
+
 def draw(symbol):
+    """Rasterizes symbol to B&W image."""
     grid = np.zeros((FRAME_SIZE, FRAME_SIZE))
     new_symbol = resize(symbol)
     for trace in new_symbol.traces:
         for i in range(1, len(trace)):
-            # Start point always has smaller x
-            start_point, end_point = sorted([trace[i - 1], trace[i]], key=lambda p: p[1])
-            start_y, start_x = start_point
-            end_y, end_x = end_point
-            if int(start_x) == int(end_x):
-                x = int(start_x)
-                for y in range(int(start_y), int(end_y) + 1):
-                    if x in range(FRAME_SIZE) and y in range(FRAME_SIZE):
-                        grid[x][y] = 1
-            else:
-                gradient = (end_y - start_y) / (end_x - start_x)
-                for x in range(int(start_x), int(end_x) + 1):
-                    y = int((x + 0.5 - start_x) * gradient + start_y)
-                    if x in range(FRAME_SIZE) and y in range(FRAME_SIZE):
-                        grid[x][y] = 1
+            start_point, end_point = trace[i - 1], trace[i]
+            coordinates_by_x = rasterized_line(start_point, end_point, 0)
+            coordinates_by_y = rasterized_line(start_point, end_point, 1)
+            coordinates = coordinates_by_x.union(coordinates_by_y)
+            for coordinate in coordinates:
+                x, y = coordinate
+                grid[y][x] = 1
 
-            # Start point always has smaller y
-            start_point, end_point = sorted([trace[i - 1], trace[i]], key=lambda p: p[0])
-            start_y, start_x = start_point
-            end_y, end_x = end_point
-            if int(start_y) == int(end_y):
-                y = int(start_y)
-                for x in range(int(start_x), int(end_x) + 1):
-                    if x in range(FRAME_SIZE) and y in range(FRAME_SIZE):
-                        grid[x][y] = 1
-            else:
-                gradient = (end_x - start_x) / (end_y - start_y)
-                for y in range(int(start_y), int(end_y) + 1):
-                    x = int((y + 0.5 - start_y) * gradient + start_x)
-                    if x in range(FRAME_SIZE) and y in range(FRAME_SIZE):
-                        grid[x][y] = 1
     return grid
 
 
