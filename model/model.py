@@ -14,15 +14,15 @@ EPOCHS = 40
 BATCH_SIZE = 64
 
 train_dataset = Datasets.HandWrittenDataset('../data/train/',
-         transform=transforms.Compose([
-             transforms.ToTensor(),
-             transforms.Normalize((0.1307,), (0.3081,))
-         ]))
+                                            transform=transforms.Compose([
+                                                transforms.ToTensor(),
+                                                transforms.Normalize((0.1307,), (0.3081,))
+                                            ]))
 test_dataset = Datasets.HandWrittenDataset('../data/test/',
-         transform=transforms.Compose([
-             transforms.ToTensor(),
-             transforms.Normalize((0.1307,), (0.3081,))
-         ]))
+                                           transform=transforms.Compose([
+                                               transforms.ToTensor(),
+                                               transforms.Normalize((0.1307,), (0.3081,))
+                                           ]))
 
 DICTLEN = train_dataset.getDictLen()
 
@@ -36,6 +36,7 @@ test_loader = DataLoader(
     batch_size=BATCH_SIZE, shuffle=True
 )
 
+
 class CNN(nn.Module):
     def __init__(self):
         super(CNN, self).__init__()
@@ -44,6 +45,7 @@ class CNN(nn.Module):
         self.drop = nn.Dropout2d()
         self.fc1 = nn.Linear(1620, 100)
         self.fc2 = nn.Linear(100, DICTLEN)
+
     def forward(self, x):
         x = F.relu(F.max_pool2d(self.conv1(x), 2))
         x = F.relu(F.max_pool2d(self.conv2(x), 2))
@@ -53,8 +55,10 @@ class CNN(nn.Module):
         x = self.fc2(x)
         return F.log_softmax(x, dim=1)
 
+
 model = CNN().to(DEVICE)
 optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.5)
+
 
 def train(model, train_loader, optimizer, epoch):
     model.train()
@@ -69,7 +73,8 @@ def train(model, train_loader, optimizer, epoch):
         if batch_idx % 20 == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                 epoch, batch_idx * len(data), len(train_loader.dataset),
-                100. * batch_idx / len(train_loader), loss.item()))
+                       100. * batch_idx / len(train_loader), loss.item()))
+
 
 def evaluate(model, test_loader):
     model.eval()
@@ -88,9 +93,10 @@ def evaluate(model, test_loader):
     test_accuracy = 100. * correct / len(test_loader.dataset)
     return test_loss, test_accuracy
 
+
 loss = []
 accu = []
-for epoch in range(1, EPOCHS+1):
+for epoch in range(1, EPOCHS + 1):
     train(model, train_loader, optimizer, epoch)
     test_loss, test_accuracy = evaluate(model, test_loader)
     loss.append(test_loss)

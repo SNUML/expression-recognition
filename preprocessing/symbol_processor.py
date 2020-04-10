@@ -140,21 +140,29 @@ def draw(symbol):
     return grid
 
 
-resource_path = '../data/resources/'
-image_save_path = '../data/train/'
+train_resource_path = '../data/resources/'
+train_image_save_path = '../data/train/'
+
+test_resource_path = '../data/resources2/'
+test_image_save_path = '../data/test/'
+
+train_paths = [train_resource_path, train_image_save_path]
+test_paths = [test_resource_path, test_image_save_path]
 
 if __name__ == '__main__':
-    numbering = 1
-    for filename in listdir(resource_path):
-        if filename.endswith('.inkml'):
-            with open(resource_path + filename, 'r') as f:
-                inkml_str = f.read()
-            expression = Expression(inkml_str)
-            symbols = expression.symbols()
-            for symbol in symbols:
-                print(numbering, symbol.truth)
-                array = draw(symbol)
-                img = to_image(array)
-                truth_string = symbol.truth
-                img.save(image_save_path + str(numbering) + '   ' + truth_string + '.png')
-                numbering += 1
+    for paths in (train_paths, test_paths):
+        resource_path, image_save_path = paths
+        numbering = 1
+        for filename in listdir(resource_path):
+            if filename.endswith('.inkml'):
+                with open(resource_path + filename, 'r') as f:
+                    inkml_str = f.read()
+                expression = Expression(inkml_str)
+                symbols = expression.symbols()
+                for symbol in symbols:
+                    print(numbering, symbol.truth)
+                    array = draw(symbol)
+                    img = to_image(array)
+                    truth_string = symbol.truth
+                    img.save(image_save_path + str(numbering) + '   ' + truth_string + '.png')
+                    numbering += 1
