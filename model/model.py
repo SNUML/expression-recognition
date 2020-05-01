@@ -10,6 +10,7 @@ from matplotlib.image import imread
 
 USE_CUDA = torch.cuda.is_available()
 DEVICE = torch.device("cuda" if USE_CUDA else "cpu")
+print("Using {}".format(DEVICE))
 EPOCHS = 40
 BATCH_SIZE = 64
 
