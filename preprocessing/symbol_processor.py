@@ -88,8 +88,8 @@ def resize(symbol):
     return new_symbol
 
 
-def rasterized_line(start_point, end_point, axis):
-    """Returns array of coordinates to represent line segment speified by arguments.
+def naive_line_draw(start_point, end_point, axis):
+    """Returns array of coordinates to represent line segment specified by arguments.
 
     The axis parameter determines by which axis to rasterize the line.
     The axis parameter should be 0 for x or 1 for y."""
@@ -123,6 +123,13 @@ def rasterized_line(start_point, end_point, axis):
     return coordinates
 
 
+def two_pass_naive_line_draw(start_point, end_point):
+    coordinates_by_x = naive_line_draw(start_point, end_point, 0)
+    coordinates_by_y = naive_line_draw(start_point, end_point, 1)
+    coordinates = coordinates_by_x.union(coordinates_by_y)
+    return coordinates
+
+
 def draw(symbol):
     """Rasterizes symbol to B&W image."""
     grid = np.zeros((FRAME_SIZE, FRAME_SIZE))
@@ -130,9 +137,7 @@ def draw(symbol):
     for trace in new_symbol.traces:
         for i in range(1, len(trace)):
             start_point, end_point = trace[i - 1], trace[i]
-            coordinates_by_x = rasterized_line(start_point, end_point, 0)
-            coordinates_by_y = rasterized_line(start_point, end_point, 1)
-            coordinates = coordinates_by_x.union(coordinates_by_y)
+            coordinates = two_pass_naive_line_draw(start_point, end_point)
             for coordinate in coordinates:
                 x, y = coordinate
                 grid[y][x] = 1
