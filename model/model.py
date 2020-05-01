@@ -84,8 +84,7 @@ def evaluate(model, test_loader):
         for data, target in test_loader:
             data, target = data.to(DEVICE), target.to(DEVICE)
             output = model(data)
-            test_loss += F.cross_entropy(output, target,
-                                         reduction='sum').item()
+            test_loss += F.cross_entropy(output, target, reduction='sum').item()
             pred = output.max(1, keepdim=True)[1]
             correct += pred.eq(target.view_as(pred)).sum().item()
 
