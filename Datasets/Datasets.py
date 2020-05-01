@@ -3,8 +3,10 @@ from PIL import Image
 import torch
 import os
 
+
 class HandWrittenDataset(Dataset):
     classes = []
+
     def read_dataset(self):
         img_files = []
         img_label = []

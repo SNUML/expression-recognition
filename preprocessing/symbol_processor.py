@@ -103,22 +103,23 @@ def naive_line_draw(start_point, end_point, axis):
     start_rel_x, start_rel_y = start_point[axis], start_point[axis_inv]
     end_rel_x, end_rel_y = end_point[axis], end_point[axis_inv]
 
+    start_rel_x_i, start_rel_y_i, end_rel_x_i, end_rel_y_i = map(int, [start_rel_x, start_rel_y, end_rel_x, end_rel_y])
+
     coordinates = set()
-    if int(start_rel_x) == int(end_rel_x):
-        rel_x = int(start_rel_x)
-        for rel_y in range(int(start_rel_y), int(end_rel_y) + 1):
+    if start_rel_x_i == end_rel_x_i:
+        rel_x = start_rel_x_i
+        for rel_y in range(start_rel_y_i, end_rel_y_i + 1):
             if rel_x in range(FRAME_SIZE) and rel_y in range(FRAME_SIZE):
                 rel_coordinate = [rel_x, rel_y]
                 x, y = rel_coordinate[axis], rel_coordinate[axis_inv]
                 coordinates.add((x, y))
     else:
-        gradient = (end_rel_y - start_rel_y) / (end_rel_x - start_rel_x)
-        for rel_x in range(int(start_rel_x), int(end_rel_x) + 1):
-            rel_y = int((rel_x + 0.5 - start_rel_x) * gradient + start_rel_y)
-            if rel_x in range(FRAME_SIZE) and rel_y in range(FRAME_SIZE):
-                rel_coordinate = [rel_x, rel_y]
-                x, y = rel_coordinate[axis], rel_coordinate[axis_inv]
-                coordinates.add((x, y))
+        gradient = (end_rel_y_i - start_rel_y_i) / (end_rel_x_i - start_rel_x_i)
+        for rel_x in range(start_rel_x_i, end_rel_x_i + 1):
+            rel_y = int((rel_x - start_rel_x_i) * gradient + start_rel_y_i)
+            rel_coordinate = [rel_x, rel_y]
+            x, y = rel_coordinate[axis], rel_coordinate[axis_inv]
+            coordinates.add((x, y))
 
     return coordinates
 
